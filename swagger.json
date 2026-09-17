@@ -7,12 +7,12 @@
   },
   "servers": [
     {
-      "url": "http://localhost:3000",
-      "description": "Local"
+      "url": "https://task-manager-6t5y.onrender.com",
+      "description": "Render"
     },
     {
-      "url": "https://onrender.com",
-      "description": "On render"
+      "url": "http://localhost:3000",
+      "description": "Local"
     }
   ],
   "tags": [

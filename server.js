@@ -20,7 +20,21 @@ app.get('/', (req, res) => {
   });
 });
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+// Dynamic swagger so Try it out uses this host
+app.get('/swagger.json', (req, res) => {
+  const proto = req.get('x-forwarded-proto') || req.protocol;
+  const host = req.get('host');
+  res.json({
+    ...swaggerDocument,
+    servers: [{ url: `${proto}://${host}`, description: 'Current server' }]
+  });
+});
+
+app.use(
+  '/api-docs',
+  swaggerUi.serve,
+  swaggerUi.setup(null, { swaggerOptions: { url: '/swagger.json' } })
+);
 app.use('/', routes);
 
 const start = async () => {
