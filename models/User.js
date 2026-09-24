@@ -2,6 +2,12 @@ const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema(
   {
+    // Google gives each account a unique id.
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true
+    },
     firstName: {
       type: String,
       required: true,

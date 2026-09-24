@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "Personal Task Manager API",
-    "description": "CSE 341 — Users (role: user | admin) and tasks. Task routes require header x-user-id. Users and admins only CRUD their own tasks. Only admins can DELETE users. GET /tasks hides completed by default; use ?completed=true to list them.",
+    "description": "CSE 341 Week 04 — Google OAuth login protects task routes. Log in at /auth/google in this browser before testing protected routes. Users and admins can CRUD their own tasks. Only admins can DELETE users.",
     "version": "1.0.0"
   },
   "servers": [
@@ -17,6 +17,9 @@
   ],
   "tags": [
     {
+      "name": "Authentication"
+    },
+    {
       "name": "Users"
     },
     {
@@ -24,6 +27,45 @@
     }
   ],
   "paths": {
+    "/auth/google": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "Log in with Google",
+        "description": "Open this URL in the browser. Google creates the account on the first login and starts a session.",
+        "responses": {
+          "302": { "description": "Redirects to Google login" }
+        }
+      }
+    },
+    "/auth/google/callback": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "Google login callback",
+        "responses": {
+          "200": { "description": "Login successful" },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "Show the logged-in user",
+        "responses": {
+          "200": { "description": "Logged-in user" },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/auth/logout": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "Log out",
+        "responses": {
+          "200": { "description": "Logout successful" }
+        }
+      }
+    },
     "/users": {
       "get": {
         "tags": [
@@ -175,6 +217,7 @@
           "Users"
         ],
         "summary": "Delete a user (admin only)",
+        "security": [{ "sessionCookie": [] }],
         "description": "Requires x-user-id of an admin. Also deletes that user's tasks.",
         "parameters": [
           {
@@ -229,6 +272,7 @@
           "Tasks"
         ],
         "summary": "Get my tasks (hides completed by default)",
+        "security": [{ "sessionCookie": [] }],
         "parameters": [
           {
             "$ref": "#/components/parameters/UserIdHeader"
@@ -274,6 +318,7 @@
           "Tasks"
         ],
         "summary": "Create a task for myself",
+        "security": [{ "sessionCookie": [] }],
         "description": "userId is set from x-user-id automatically.",
         "parameters": [
           {
@@ -319,6 +364,7 @@
           "Tasks"
         ],
         "summary": "Get one of my tasks",
+        "security": [{ "sessionCookie": [] }],
         "parameters": [
           {
             "name": "id",
@@ -365,6 +411,7 @@
           "Tasks"
         ],
         "summary": "Update one of my tasks",
+        "security": [{ "sessionCookie": [] }],
         "parameters": [
           {
             "name": "id",
@@ -421,6 +468,7 @@
           "Tasks"
         ],
         "summary": "Delete one of my tasks",
+        "security": [{ "sessionCookie": [] }],
         "parameters": [
           {
             "name": "id",
@@ -470,12 +518,20 @@
     }
   },
   "components": {
+    "securitySchemes": {
+      "sessionCookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "connect.sid",
+        "description": "Created automatically after Google OAuth login."
+      }
+    },
     "parameters": {
       "UserIdHeader": {
         "name": "x-user-id",
         "in": "header",
-        "required": true,
-        "description": "MongoDB _id of the acting user or admin",
+        "required": false,
+        "description": "Not used for OAuth. Log in at /auth/google in this browser; this legacy field can be left empty.",
         "schema": {
           "type": "string"
         }
@@ -636,7 +692,7 @@
         }
       },
       "Unauthorized": {
-        "description": "Missing or invalid x-user-id",
+        "description": "User is not logged in with Google",
         "content": {
           "application/json": {
             "schema": {

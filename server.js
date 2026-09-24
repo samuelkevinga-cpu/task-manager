@@ -2,16 +2,38 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
+const session = require('express-session');
+const passport = require('./config/passport');
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./swagger.json');
 const connectDB = require('./db/connect');
 const routes = require('./routes');
+const authRoutes = require('./routes/auth');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Render runs behind a proxy.
+app.set('trust proxy', 1);
 app.use(cors());
 app.use(express.json());
+
+// Store the logged-in user in a session cookie.
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || 'change-this-session-secret',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 1000 * 60 * 60
+    }
+  })
+);
+
+// Start Passport session support.
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.get('/', (req, res) => {
   res.json({
@@ -35,6 +57,7 @@ app.use(
   swaggerUi.serve,
   swaggerUi.setup(null, { swaggerOptions: { url: '/swagger.json' } })
 );
+app.use('/auth', authRoutes);
 app.use('/', routes);
 
 const start = async () => {
