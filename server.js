@@ -17,6 +17,8 @@ const PORT = process.env.PORT || 3000;
 app.set('trust proxy', 1);
 app.use(cors());
 app.use(express.json());
+// Serve the small Swagger login link script.
+app.use('/swagger-login.js', express.static('public/swagger-login.js'));
 
 // Store the logged-in user in a session cookie.
 app.use(
@@ -55,7 +57,10 @@ app.get('/swagger.json', (req, res) => {
 app.use(
   '/api-docs',
   swaggerUi.serve,
-  swaggerUi.setup(null, { swaggerOptions: { url: '/swagger.json' } })
+  swaggerUi.setup(null, {
+    swaggerOptions: { url: '/swagger.json' },
+    customJs: '/swagger-login.js'
+  })
 );
 app.use('/auth', authRoutes);
 app.use('/', routes);
